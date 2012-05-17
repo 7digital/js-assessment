@@ -2,10 +2,14 @@ define([ 'use!underscore' ], function(_) {
   describe("functions", function() {
     var sayIt = function(greeting, name, punctuation) {
           return greeting + ', ' + name + (punctuation || '!');
-        },
-        fn = function() {};
+        };
+
 
     it("you should be able to use an array as arguments when calling a function", function() {
+      var fn = function(args) {
+          return sayIt.apply(this,args);
+      };
+
       var result = fn([ 'Hello', 'Ellie', '!' ]);
       expect(result).to.be('Hello, Ellie!');
     });
@@ -21,26 +25,59 @@ define([ 'use!underscore' ], function(_) {
 
       // define a function for fn that calls the speak function such that the
       // following test will pass
+      var fn = function() {
+        return speak.apply(obj);
+      };
+
       expect(fn()).to.be('Hello, Rebecca!!!');
     });
 
     it("you should be able to return a function from a function", function() {
       // define a function for fn so that the following will pass
-      expect(fn('Hello')('world')).to.be('Hello, world');
+
+      var fn = function(greeting) {
+        var innerFn = function(name){
+              return greeting + ", " + name;
+        }
+        return innerFn;
+      }
+
+     // expect(fn('Hello')('world')).to.be('Hello, world');
+
+      var greetWithHello = fn('Hello');
+      expect(greetWithHello("world")).to.be('Hello, world')
+
     });
 
     it("you should be able to create a 'partial' function", function() {
       // define a function for fn so that the following will pass
+
+      var fn = function(toCall, greeting, name){
+          var sayItWithPunctuation = function(punctuation){
+              return toCall(greeting, name, punctuation);
+          }
+          return sayItWithPunctuation;
+      }
+
       var partial = fn(sayIt, 'Hello', 'Ellie');
       expect(partial('!!!')).to.be('Hello, Ellie!!!');
     });
 
     it("you should be able to use arguments", function () {
-      fn = function () {
-        // you can only edit function body here
+      var fn = function () {
+       // var reduce = Array.prototype.reduce;
+       // return reduce.call(arguments,function(previousValue, currentValue, index, array){  
+         // return previousValue + currentValue;  
+        //});
+        var sum = 0;
+        for (var i = arguments.length - 1; i >= 0; i--) {
+          sum += arguments[i]
+        };
+        return sum;
       };
 
-      var a = Math.random(), b = Math.random(), c = Math.random(), d = Math.random();
+      var a = 1, b = 2, c = 3, d = 4;
+      
       expect(fn(a)).to.be(a);
       expect(fn(a, b)).to.be(a + b);
       expect(fn(a, b, c)).to.be(a + b + c);
@@ -48,8 +85,10 @@ define([ 'use!underscore' ], function(_) {
     });
 
     it("you should be able to apply functions", function () {
-      fn = function (fun) {
+      var fn = function (fun) {
         // you can only edit function body here
+        var funArgs = Array.prototype.slice.call(arguments, 1);
+        fun.apply(this, funArgs);
       };
 
       (function () {
@@ -82,15 +121,22 @@ define([ 'use!underscore' ], function(_) {
     });
 
     it("you should be able to curry existing functions", function () {
-      fn = function (fun) {
-        // you can only edit function body here
+      var fn = function (fun) {
+        var argsToCurry = Array.prototype.slice.call(arguments, 1);
+
+        return function(){
+          var innerArgs = Array.prototype.slice.call(arguments, 0);
+          Array.prototype.push.apply(argsToCurry, innerArgs);
+          
+          return fun.apply(null, argsToCurry);
+        };
       };
 
       var curryMe = function (x, y, z) {
         return x / y * z;
       };
 
-      var a = Math.random(), b = Math.random(), c = Math.random();
+      var a = 1, b = 2, c = 3;
       expect(fn(curryMe)(a, b, c)).to.be(curryMe(a, b, c));
       expect(fn(curryMe, a)(b, c)).to.be(curryMe(a, b, c));
       expect(fn(curryMe, a, b)(c)).to.be(curryMe(a, b, c));
@@ -103,9 +149,15 @@ define([ 'use!underscore' ], function(_) {
       var arr = [ Math.random(), Math.random(), Math.random(), Math.random() ];
       var doSomeStuff;
 
-      fn = function (vals) {
+      var fn = function (vals) {
         // you can only edit function body here
+        return vals.map(function(item){
+           return function(){
+            return doSomeStuff(item);
+          };
+        });
       };
+      
 
       doSomeStuff = function (x) { return x * x; };
 
