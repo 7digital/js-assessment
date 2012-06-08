@@ -23,18 +23,30 @@ define([ 'use!underscore' ], function(_) {
         this.name = name;
         return this;
       };
+
     });
 
     it("you should be able to alter the context in which a method runs", function() {
+      fn = function(){
+        return a.sayIt.call(b);
+      }
+
       // define a function for fn so that the following will pass
       expect(fn()).to.be('Yo, Rebecca!');
     });
 
     it("you should be able to alter multiple objects at once", function() {
+
+
+
       // define a function for fn so that the following will pass
       var obj1 = new C('Rebecca'),
           obj2 = new C('Melissa'),
           greeting = "What's up";
+
+      var fn = function(someGreet) { 
+        C.prototype.greeting = someGreet;
+      };
 
       fn(greeting);
 
@@ -51,6 +63,17 @@ define([ 'use!underscore' ], function(_) {
       };
 
       C.prototype.bop = 'bip';
+
+      var fn = function(obj){
+        var result = [];
+
+        for (var prop in obj) {  
+          if (obj.hasOwnProperty(prop)) {  
+            result.push(prop + ": " + obj[prop])
+          }  
+        } 
+        return result;
+      };
 
       var obj = new C();
 

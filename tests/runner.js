@@ -4,6 +4,7 @@ var tests = [
   'tests/app/arrays',
   'tests/app/objects',
   'tests/app/functions',
+  'tests/app/flowControl',
   'tests/app/async',
   'tests/app/views'
 ];
